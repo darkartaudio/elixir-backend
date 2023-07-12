@@ -1,40 +1,75 @@
-// import faker
-const { faker } = require('@faker-js/faker');
+const { faker } = require('@faker-js/faker')
 
-// console.log('first name', faker.person.firstName());
-// console.log('last name', faker.person.lastName());
-// console.log('email', faker.internet.email());
-// console.log('job title', faker.person.jobTitle());
-// console.log('birthdate', faker.date.birthdate());
-// console.log('street address', faker.location.streetAddress());
-// console.log('city', faker.location.city());
-// console.log('state', faker.location.state());
-// console.log('zip code', faker.location.zipCode());
-// console.log('phone number', faker.phone.number());
+function parseValue(value) {
+    let valueArray = value.toLowerCase().split("+");
+    let parsedArray = valueArray.map((word) => {
+        let wordArray = word.split("");
+        wordArray[0] = " " + wordArray[0].toUpperCase();
+        return wordArray.join("");
+    });
+    let parsedValue = parsedArray.join("").trim();
+    return parsedValue;
+}
 
-// create a function that returns an object of a random user with name in email
+function firstLettersCapitalized(string) {
+    const words = string.split(" ");
+
+    const capitalizedAfterSpaces = words.map((word) => { 
+        return word[0].toUpperCase() + word.substring(1); 
+    }).join(" ");
+
+    const splitAtHyphens = capitalizedAfterSpaces.split("-");
+
+    return splitAtHyphens.map((word) => {
+        return word[0].toUpperCase() + word.substring(1);
+    }).join("-");
+}
+
+function wait(time) {
+    return new Promise(resolve => {
+        setTimeout(resolve, time);
+    });
+}
+
 function createRandomUser() {
-    let firstName = faker.person.firstName();
-    let lastName = faker.person.lastName();
-    // split the faker email
-    let email = `${firstName}.${lastName}@${faker.internet.email().split('@')[1]}`
-
     return {
-        firstName: firstName,
-        lastName: lastName,
-        email: email,
-        jobTitle: faker.person.jobTitle(),
+        fullName: faker.person.fullName(),
+        email: faker.internet.email(),
+        username: faker.internet.displayName(),
         birthdate: faker.date.birthdate(),
-        address: {
-            streetAddress: faker.location.streetAddress(),
-            city: faker.location.city(),
-            state: faker.location.state(),
-            zipCode: faker.location.zipCode('#####')
-        },
-        number: faker.phone.number()
+        location: faker.location.city(),
+        avatar: faker.image.avatar()
+
+    };
+}
+
+function createRandomRecipe() {
+    return {
+        name: faker.commerce.productName(),
+        instructions: faker.lorem.paragraph(),
+        alcoholic: true,
+        location: faker.location.city(),
+        image: faker.image.urlLoremFlickr({ category: 'food' }),
+        glassType: faker.lorem.words(2),
+        category: faker.lorem.word()
+    };
+}
+
+function createRandomIngredient() {
+    return {
+        name: faker.commerce.productName(),
+        description: faker.lorem.sentence(),
+        type: faker.lorem.words(2),
+        alcoholic: true
     }
 }
 
 module.exports = {
+    parseValue,
+    wait,
+    firstLettersCapitalized,
     createRandomUser,
+    createRandomRecipe,
+    createRandomIngredient
 }
+
