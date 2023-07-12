@@ -6,6 +6,8 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const passport = require('passport');
 const { JWT_SECRET } = process.env;
+const moment = require('moment')
+const { parseValue } = require('../utils')
 
 // import the User model
 const { User } = require('../models');
@@ -15,13 +17,11 @@ router.get('/', (req, res) => {
     User.find({})
         .then((users) => {
             console.log('users', users);
-            res.header("Access-Control-Allow-Origin", "*");
-            res.json({ users: users });
+            return res.json({ users: users });
         })
         .catch((error) => {
             console.log('error', error);
-            res.header("Access-Control-Allow-Origin", "*");
-            res.json({ message: 'There was an issue, please try again...' });
+            return res.json({ message: 'There was an issue, please try again...' });
         });
 });
 
@@ -31,41 +31,37 @@ router.get('/profile', passport.authenticate('jwt', { session: false }), (req, r
     console.log(req.body);
     console.log('====> user')
     console.log(req.user);
-    const { id, firstName, lastName, email, address, jobTitle, birthdate, number } = req.user; // object with user object inside
-    res.json({ id, firstName, lastName, email, address, jobTitle, birthdate, number });
+    const { id, email, username, fullName, birthdate, location, recipesByUser, commentsByUser, following, favorites, avatar } = req.user; // object with user object inside
+    return res.json({ id, email, username, fullName, birthdate, location, recipesByUser, commentsByUser, following, favorites, avatar });
 });
 
-// other routes below
-// GET make a route that queries users by [email domain] [zipCode] [state]
 router.get('/:field/:value', (req, res) => {
-    if (req.params.field === 'zipcode' || req.params.field === 'zipCode') {
-        let zipCode = parseInt(req.params.value);
-        // find all users based on zipCode
-        User.find({ "address.zipCode": zipCode })
-            .then((users) => {
-                console.log('users', users);
-                res.header("Access-Control-Allow-Origin", "*");
-                return res.json({ users: users });
-            })
-            .catch((error) => {
-                console.log('error', error);
-                res.header("Access-Control-Allow-Origin", "*");
-                res.json({ message: 'There was an issue, please try again...' });
-            });
-    } else if (req.params.field === 'email' || req.params.field === 'Email') {
-        User.find({ email: req.params.value })
-            .then((user) => {
-                console.log('user', user);
-                res.header("Access-Control-Allow-Origin", "*");
-                return res.json({ user: user });
-            })
-            .catch((error) => {
-                console.log('error', error);
-                res.header("Access-Control-Allow-Origin", "*");
-                res.json({ message: 'There was an issue, please try again...' });
-            });
-    }
+    let field = req.params.field;
+    let value = req.params.value;
+    console.log('field', 'value', field, value);
+    
+    User.find({ [field]:[value] })
+    .then((user) => {
+        console.log("user", user);
+        return res.json({ user: user });
+    })
+    .catch(error => {
+        console.log('error', error);
+        return res.json({ message: 'There was an issue please try again...' });
+    });
 });
+
+router.get('/:id', passport.authenticate('jwt', { session: false }), (req, res) => {
+    User.findById(req.params.id)
+    .then((user) => {
+        console.log('user found');
+        return res.json({ user: user });
+    })
+    .catch(error => {
+        console.log('error', error);
+        return res.json({ message: 'There was an issue please try again...' });
+    });
+})
 
 router.post('/signup', (req, res) => {
     // POST - adding the new user to the database
@@ -81,17 +77,13 @@ router.post('/signup', (req, res) => {
         } else {
             // Create a new user
             const newUser = new User({
-                firstName: req.body.firstName,
-                lastName: req.body.lastName,
+                fullName: req.body.fullName,
+                username: req.body.username,
                 email: req.body.email,
-                jobTitle: req.body.jobTitle,
-                birthdate: new Date(),
-                "address.streetAddress": req.body.streetAddress,
-                "address.city": req.body.city,
-                "address.state": req.body.state,
-                "address.zipCode": req.body.zipCode,
-                number: req.body.number,
-                password: req.body.password
+                location: req.body.location,
+                birthdate: req.body.birthdate,
+                password: req.body.password,
+                avatar: req.body.avatar
             });
 
             // Salt and hash the password - before saving the user
@@ -143,12 +135,15 @@ router.post('/login', async (req, res) => {
             const payload = {
                 id: foundUser.id,
                 email: foundUser.email,
-                firstName: foundUser.firstName,
-                lastName: foundUser.lastName,
-                address: foundUser.address,
+                username: foundUser.username,
+                fullName: foundUser.fullName,
+                location: foundUser.location,
                 birthdate: foundUser.birthdate,
-                jobTitle: foundUser.jobTitle,
-                number: foundUser.number
+                recipesByUser: foundUser.recipesByUser,
+                commentsByUser: foundUser.commentsByUser,
+                following: foundUser.following,
+                favorites: foundUser.favorites,
+                avatar: foundUser.avatar
             }
 
             jwt.sign(payload, JWT_SECRET, { expiresIn: 3600 }, (err, token) => {
@@ -169,98 +164,51 @@ router.post('/login', async (req, res) => {
     }
 });
 
-// POST route /users/new - create a new user
-router.post('/new', (req, res) => {
-    // read the req.body - data for the new user coming in at
-    console.log('data from request (user)', req.body); // object
-    // Find a user
-    User.findOne({ email: req.body.email })
-        .then((user) => {
-            // check to see if user exist in database
-            if (user) {
-                // return a message saying user exist
-                res.header("Access-Control-Allow-Origin", "*");
-                res.json({ message: `${user.email} already exists. Please try again` });
-            } else {
-                // create a user
-                User.create({
-                    firstName: req.body.firstName,
-                    lastName: req.body.lastName,
-                    email: req.body.email,
-                    jobTitle: req.body.jobTitle,
-                    birthdate: new Date(),
-                    "address.streetAddress": req.body.streetAddress,
-                    "address.city": req.body.city,
-                    "address.state": req.body.state,
-                    "address.zipCode": req.body.zipCode,
-                    number: req.body.number,
-                    password: req.body.password
-                })
-                    .then((newUser) => {
-                        console.log('new user created ->', newUser);
-                        res.header("Access-Control-Allow-Origin", "*");
-                        return res.json({ user: newUser });
-                    })
-                    .catch((error) => {
-                        console.log('error', error);
-                        res.header("Access-Control-Allow-Origin", "*");
-                        return res.json({ message: 'error occured, please try again.' });
-                    });
-            }
-        })
-        .catch((error) => {
-            console.log('error', error);
-            res.header("Access-Control-Allow-Origin", "*");
-            return res.json({ message: 'error occured, please try again.' });
-        });
-});
-
 router.put('/:id', (req, res) => {
-    const updateQuery = {}
-    // check firstName
-    if (req.body.firstName) {
-        updateQuery.firstName = req.body.firstName
+    const updateQuery = {};
+    // check fullName
+    if (req.body.fullName) {
+        updateQuery.fullName = req.body.fullName;
     }
-    // check lastName
-    if (req.body.lastName) {
-        updateQuery.lastName = req.body.lastName
+    // check username
+    if (req.body.username) {
+        updateQuery.username = req.body.username;
     }
     // check email
     if (req.body.email) {
-        updateQuery.email = req.body.email
+        updateQuery.email = req.body.email;
     }
-    // check jobTitle
-    if (req.body.jobTitle) {
-        updateQuery.jobTitle = req.body.jobTitle
+    // check recipesByUser
+    if (req.body.recipesByUser) {
+        updateQuery.recipesByUser = req.body.recipesByUser;
     }
-    // check bithdate
-    if (req.body.bithdate) {
-        updateQuery.bithdate = req.body.bithdate
+    // check birthdate
+    if (req.body.birthdate) {
+        updateQuery.birthdate = req.body.birthdate;
     }
-    // check streetAddress
-    if (req.body.streetAddress) {
-        updateQuery["address.streetAddress"] = req.body.streetAddress
+    // check location
+    if (req.body.location) {
+        updateQuery.location = req.body.location;
     }
-    // check city
-    if (req.body.city) {
-        updateQuery["address.city"] = req.body.city
+    // check avatar
+    if (req.body.avatar) {
+        updateQuery.avatar = req.body.avatar;
     }
-    // check state
-    if (req.body.state) {
-        updateQuery["address.state"] = req.body.state
+    // check commentsByUser
+    if (req.body.commentsByUser) {
+        updateQuery.commentsByUser = req.body.commentsByUser;
     }
-    // check zipCode
-    if (req.body.zipCode) {
-        updateQuery["address.zipCode"]  = req.body.zipCode
+    // check following
+    if (req.body.following) {
+        updateQuery.following = req.body.following;
     }
-    // check number
-    if (req.body.number) {
-        updateQuery.number = req.body.number
+    // check favorites
+    if (req.body.favorites) {
+        updateQuery.favorites = req.body.favorites;
     }
-
-    User.findByIdAndUpdate(req.params.id, {$set: updateQuery }, {new: true})
+    User.findByIdAndUpdate(req.params.id, { $set: updateQuery }, { new: true })
     .then((user) => {
-        return res.json({ message: `${user.email} was updated`, user: user});
+        return res.json({ message: `${user.email} was updated`, user: user });
     })
     .catch((error) => {
         console.log('error inside PUT /users/:id', error);
@@ -274,175 +222,12 @@ router.delete('/:id', (req, res) => {
     
     User.findByIdAndDelete(req.params.id)
     .then((result) => {
-        return res.json({ message: `user at ${req.params.id} was delete`});
+        return res.json({ message: `User ${req.params.id} was deleted.`});
     })
     .catch((error) => {
         console.log('error inside DELETE /users/:id', error);
-        return res.json({ message: 'error occured, please try again.' });
+        return res.json({ message: 'An error occured, please try again.' });
     });
 });
 
 module.exports = router;
-
-// const express = require('express')
-// const router = express.Router();
-// const { User } = require('../models')
-// const moment = require('moment')
-// const { parseValue } = require('../utils')
-
-// router.get('/', (req, res) => {
-//     User.find({})
-//     .then((users) => {
-//         return res.json({ users: users });
-//     })
-//     .catch(error => {
-//         console.log('error', error);
-//         res.json({ message: 'There was an issue please try again...'})
-//     })
-// })
-
-// router.get('/:field/:value', (req, res) => {
-//     let field = req.params.field
-//     let value = req.params.value
-//     console.log('field', 'value', field, value)
-//     // let query = {}
-//     // query[field]=value
-    
-//     User.find({ [field]:[value] })
-//     .then((user) => {
-//         console.log("user", user)
-//         return res.json({ user: user })
-//     })
-//     .catch(error => {
-//         console.log('error', error);
-//         res.json({ message: 'There was an issue please try again...' });
-//     });
-// })
-
-// router.get('/:id', (req, res) => {
-//     User.findById(req.params.id)
-//     .then((user) => {
-//         console.log('user found')
-//         return res.json({ user: user})
-//     })
-//     .catch(error => {
-//         console.log('error', error);
-//         res.json({ message: 'There was an issue please try again...' });
-//     });
-// })
-
-// router.get('/:email', (req, res) => {
-//         User.find({ email: req.params.value })
-//             .then((users) => {
-//                 console.log('user', user);
-//                 res.json({ user: user });
-//             })
-//             .catch(error => {
-//                 console.log('error', error);
-//                 res.json({ message: 'There was an issue please try again...' });
-//             });
-    
-// });
-
-// router.post('/new', (req, res) => {
-//     console.log('data from request(user)', req.body);
-//     User.findOne({ email: req.body.email })
-//     .then((user) => {
-//         if (user) {
-//             res.json({ message: `${user.email} already exists. Please try again`})
-//         } else {
-//             User.create({
-//                 email: req.body.email,
-//                 username: req.body.username,
-//                 fullName: req.body.fullName,
-//                 // birthdate: new Date(),
-//                 birthdate: moment(req.body.birthdate).format('YYYY-MM-DD'),
-//                 location: req.body.location,
-//                 recipesByUser: req.body.recipesByUser,
-//                 commentsByUser: req.body.commentsByUser,
-//                 following: req.body.following,
-//                 favorites: req.body.favorites,
-//                 avatar: req.body.avatar
-//             })
-//             .then((newUser) => {
-//                 console.log('new user created =>', newUser);
-//                 return res.json({ user: newUser });
-//             })
-//             .catch((error) => {
-//                 console.log('error', error);
-//                 return res.json({ message: 'error occured, please try again.' });
-//             });
-//         }
-//     })
-//     .catch((error) => {
-//         console.log('error', error);
-//         return res.json({ message: 'error occured, please try again.' });
-//     });
-// })
-
-// router.put('/:id', (req, res) => {
-//     const updateQuery = {};
-//     // check fullName
-//     if (req.body.fullName) {
-//         updateQuery.fullName = req.body.fullName;
-//     }
-//     // check username
-//     if (req.body.username) {
-//         updateQuery.username = req.body.username;
-//     }
-//     // check email
-//     if (req.body.email) {
-//         updateQuery.email = req.body.email;
-//     }
-//     // check recipesByUser
-//     if (req.body.recipesByUser) {
-//         updateQuery.recipesByUser = req.body.recipesByUser;
-//     }
-//     // check birthdate
-//     if (req.body.birthdate) {
-//         updateQuery.birthdate = req.body.birthdate;
-//     }
-//     // check location
-//     if (req.body.location) {
-//         updateQuery.location = req.body.location;
-//     }
-//     // check avatar
-//     if (req.body.avatar) {
-//         updateQuery.avatar = req.body.avatar;
-//     }
-//     // check commentsByUser
-//     if (req.body.commentsByUser) {
-//         updateQuery.commentsByUser = req.body.commentsByUser;
-//     }
-//     // check following
-//     if (req.body.following) {
-//         updateQuery.following = req.body.following;
-//     }
-//     // check favorites
-//     if (req.body.favorites) {
-//         updateQuery.favorites = req.body.favorites;
-//     }
-
-
-//     User.findByIdAndUpdate(req.params.id, { $set: updateQuery }, { new: true })
-//         .then((user) => {
-//             return res.json({ message: `${user.email} was updated`, user: user });
-//         })
-//         .catch((error) => {
-//             console.log('error inside PUT /users/:id', error);
-//             return res.json({ message: 'error occured, please try again.' });
-//         });
-// });
-
-// router.delete('/:id', (req, res) => {
-//     User.findByIdAndDelete(req.params.id)
-//         .then((user) => {
-//             return res.json({ message: `${user.email} was deleted`, user: user });
-//         })
-//         .catch((error) => {
-//             console.log('error inside DELETE /users/:id', error);
-//             return res.json({ message: 'error occured, please try again.' });
-//         });
-// });
-
-// module.exports = router
