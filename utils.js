@@ -35,11 +35,11 @@ function createRandomUser() {
     return {
         fullName: faker.person.fullName(),
         email: faker.internet.email(),
+        password: faker.internet.password(),
         username: faker.internet.displayName(),
-        birthdate: faker.date.birthdate(),
+        birthdate: faker.date.birthdate({ min: 21, max: 99, mode: 'age' }),
         location: faker.location.city(),
         avatar: faker.image.avatar()
-
     };
 }
 

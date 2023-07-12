@@ -14,16 +14,7 @@ app.use(cors());
 app.use(passport.initialize());
 
 app.get('/', (req, res) => {
-    axios.get(`http://www.thecocktaildb.com/api/json/v2/${process.env.API_KEY}//search.php?i=Gin`)
-    // axios.get(`http://www.thecocktaildb.com/api/json/v2/${process.env.API_KEY}/search.php?f=a`) // USE THIS to seed all drinks
-    .then(function(response) {
-        console.log("Api data here", response.data)
-        res.json(response.data)
-    })
-    .catch(error => {
-        console.log(error.message)
-    })
-    // return res.json({ message: 'Welcome to our Elixir API' });
+    return res.json({ message: 'Welcome to our Elixir API' });
 });
 
 app.use('/users', require('./controllers/users'));
