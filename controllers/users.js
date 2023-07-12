@@ -6,8 +6,8 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const passport = require('passport');
 const { JWT_SECRET } = process.env;
-const moment = require('moment')
-const { parseValue } = require('../utils')
+const moment = require('moment');
+const { parseValue } = require('../utils');
 
 // import the User model
 const { User } = require('../models');
