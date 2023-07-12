@@ -25,6 +25,10 @@ function firstLettersCapitalized(string) {
     }).join("-");
 }
 
+function randIntInterval(min, max) {
+    return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
 function wait(time) {
     return new Promise(resolve => {
         setTimeout(resolve, time);
@@ -45,12 +49,12 @@ function createRandomUser() {
 
 function createRandomRecipe() {
     return {
-        name: faker.commerce.productName(),
+        name: firstLettersCapitalized(faker.commerce.productName()),
         instructions: faker.lorem.paragraph(),
         alcoholic: true,
         image: faker.image.urlLoremFlickr({ category: 'food' }),
-        glassType: faker.lorem.words(2),
-        category: faker.lorem.word()
+        glassType: firstLettersCapitalized(faker.lorem.words(2)),
+        category: firstLettersCapitalized(faker.lorem.word())
     };
 }
 
@@ -67,6 +71,7 @@ module.exports = {
     parseValue,
     wait,
     firstLettersCapitalized,
+    randIntInterval,
     createRandomUser,
     createRandomRecipe,
     createRandomIngredient

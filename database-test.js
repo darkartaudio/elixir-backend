@@ -95,5 +95,8 @@ db.on('error', (err)=> {
 // Recipe.deleteMany({})
 // .then(result => console.log(result));
 
+// User.deleteMany({})
+// .then(result => console.log(result));
+
 // Ingredient.deleteMany({})
 // .then(result => console.log(result));
