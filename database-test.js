@@ -5,7 +5,7 @@ const mongoose = require('mongoose');
 const { createRandomUser, createRandomRecipe, createRandomIngredient } = require('./utils')
 
 // models for testing
-const { User, Recipe, Ingredient } = require('./models')
+const { User, Recipe, Ingredient, Comment } = require('./models')
 
 
 // console.log('Mongo URI =>', process.env.MONGO_URI);
@@ -92,11 +92,14 @@ db.on('error', (err)=> {
 // Recipe.findOne({})
 // .then(result => console.log(result));
 
-// Recipe.deleteMany({})
-// .then(result => console.log(result));
+Recipe.deleteMany({})
+.then(result => console.log(result));
 
-// User.deleteMany({})
-// .then(result => console.log(result));
+User.deleteMany({})
+.then(result => console.log(result));
+
+Comment.deleteMany({})
+.then(result => console.log(result));
 
 // Ingredient.deleteMany({})
 // .then(result => console.log(result));

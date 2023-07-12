@@ -64,7 +64,14 @@ function createRandomIngredient() {
         description: faker.lorem.sentence(),
         type: faker.lorem.words(2),
         alcoholic: true
-    }
+    };
+}
+
+function createRandomComment() {
+    return {
+        title: firstLettersCapitalized(faker.lorem.words(2)),
+        body: faker.lorem.paragraph()
+    };
 }
 
 module.exports = {
@@ -74,6 +81,7 @@ module.exports = {
     randIntInterval,
     createRandomUser,
     createRandomRecipe,
-    createRandomIngredient
+    createRandomIngredient,
+    createRandomComment
 }
 
