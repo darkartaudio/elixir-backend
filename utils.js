@@ -48,7 +48,6 @@ function createRandomRecipe() {
         name: faker.commerce.productName(),
         instructions: faker.lorem.paragraph(),
         alcoholic: true,
-        location: faker.location.city(),
         image: faker.image.urlLoremFlickr({ category: 'food' }),
         glassType: faker.lorem.words(2),
         category: faker.lorem.word()

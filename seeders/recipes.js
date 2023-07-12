@@ -36,7 +36,7 @@ axios.get(`${process.env.API}/filter.php?a=Alcoholic`)
                     name: firstLettersCapitalized(drink.strDrink),
                     alcoholic: drink.strAlcoholic === 'Alcoholic' ? true: false,
                     image: drink.strDrinkThumb,
-                    glassType: drink.strGlass,
+                    glassType: firstLettersCapitalized(drink.strGlass),
                     category: drink.strCategory
                 }
                 // Seed database with drink object
