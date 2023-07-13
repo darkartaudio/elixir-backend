@@ -10,39 +10,53 @@ router.get('/', (req, res) => {
     })
     .catch(error => {
         console.log('error', error);
-        res.json({ message: 'There was an issue please try again...'})
+        return res.json({ message: 'There was an issue please try again...'});
     })
 })
 
 router.get('/:field/:value', (req, res) => {
-    let field = req.params.field
-    let value = req.params.value
-    console.log('field', 'value', field, value)
-    // let query = {}
-    // query[field]=value
+    let field = req.params.field;
+    let value = req.params.value;
+    // console.log('field', 'value', field, value);
     
     Recipe.find({ [field]:[value] })
     .then((recipes) => {
-        console.log("recipes", recipes)
-        return res.json({ recipes: recipes })
+        // console.log("recipes", recipes);
+        return res.json({ recipes: recipes });
     })
     .catch(error => {
         console.log('error', error);
-        res.json({ message: 'There was an issue please try again...' });
+        return res.json({ message: 'There was an issue please try again...' });
     });
 })
 
 router.get('/:id', (req, res) => {
     Recipe.findById(req.params.id)
     .then((recipe) => {
-        console.log('recipe found')
-        return res.json({ recipe: recipe})
+        // console.log('recipe found');
+        return res.json({ recipe: recipe});
     })
     .catch(error => {
         console.log('error', error);
-        res.json({ message: 'There was an issue please try again...' });
+        return res.json({ message: 'There was an issue please try again...' });
     });
 })
+
+router.post('/search', (req, res) => {
+    let ingredientIds = req.body.selectedParams.map(ingredient => {
+        return ingredient._id;
+    });
+
+    Recipe.find({ 'ingredients': { '$all': ingredientIds } })
+    .then(recipes => {
+        return res.json({ recipes });
+    })
+    .catch(error => {
+        console.log('error', error);
+        return res.json({ message: 'There was an issue please try again...' });
+    })
+    
+});
 
 router.post('/new', (req, res) => {
     console.log('data from request(recipe)', req.body);
@@ -56,7 +70,7 @@ router.post('/new', (req, res) => {
         comments: req.body.comments,
         createdBy: req.body.createdBy,
         glassType: req.body.glassType,
-        category: req.body.category,
+        category: req.body.category
     })
     .then((newRecipe) => {
         console.log('new recipe created =>', newRecipe);
