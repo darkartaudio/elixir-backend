@@ -39,12 +39,19 @@ router.get('/profile', passport.authenticate('jwt', { session: false }), (req, r
 router.get('/:field/:value', (req, res) => {
     let field = req.params.field;
     let value = req.params.value;
-    console.log('field', 'value', field, value);
+    // console.log('field', 'value', field, value);
     
     User.find({ [field]:[value] })
-    .then((user) => {
-        console.log("user", user);
-        return res.json({ user: user });
+    .then((users) => {
+        // console.log("user", user);
+
+        let birthdateParsedUsers = users.map(user => {
+            let parsedUser = {...user._doc};
+            parsedUser.birthdate = moment(user.birthdate).format('MMMM Do YYYY');
+            console.log(parsedUser);
+            return parsedUser;
+        });
+        return res.json({ users: birthdateParsedUsers });
     })
     .catch(error => {
         console.log('error', error);
@@ -66,8 +73,8 @@ router.get('/:id', passport.authenticate('jwt', { session: false }), (req, res) 
 
 router.post('/signup', (req, res) => {
     // POST - adding the new user to the database
-    console.log('===> Inside of /signup');
-    console.log('===> /register -> req.body',req.body);
+    // console.log('===> Inside of /signup');
+    // console.log('===> /register -> req.body',req.body);
 
     User.findOne({ email: req.body.email })
     .then(user => {
@@ -119,15 +126,15 @@ router.post('/signup', (req, res) => {
 
 router.post('/login', async (req, res) => {
     // POST - finding a user and returning the user
-    console.log('===> Inside of /login');
-    console.log('===> /login -> req.body', req.body);
+    // console.log('===> Inside of /login');
+    // console.log('===> /login -> req.body', req.body);
 
     const foundUser = await User.findOne({ email: req.body.email });
 
     if (foundUser) {
         // user is in the DB
         let isMatch = await bcrypt.compareSync(req.body.password, foundUser.password);
-        console.log('Does the passwords match?', isMatch);
+        // console.log('Does the passwords match?', isMatch);
         if (isMatch) {
             // if user match, then we want to send a JSON Web Token
             // Create a token payload
@@ -139,7 +146,7 @@ router.post('/login', async (req, res) => {
                 username: foundUser.username,
                 fullName: foundUser.fullName,
                 location: foundUser.location,
-                birthdate: foundUser.birthdate,
+                birthdate: moment(foundUser.birthdate).format('MMMM Do YYYY'),
                 recipesByUser: foundUser.recipesByUser,
                 commentsByUser: foundUser.commentsByUser,
                 following: foundUser.following,
@@ -152,7 +159,7 @@ router.post('/login', async (req, res) => {
                     res.status(400).json({ message: 'Session has endedd, please log in again'});
                 }
                 const legit = jwt.verify(token, JWT_SECRET, { expiresIn: 60 });
-                console.log('===> legit', legit);
+                // console.log('===> legit', legit);
                 delete legit.password; // remove before showing response
                 res.json({ success: true, token: `Bearer ${token}`, userData: legit });
             });
