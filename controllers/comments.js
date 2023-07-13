@@ -78,7 +78,7 @@ router.put('/:id', (req, res) => {
 
     Comment.findByIdAndUpdate(req.params.id, { $set: updateQuery }, { new: true })
         .then((comment) => {
-            return res.json({ message: `${comment._id} was updated`, comment: ingredient });
+            return res.json({ message: `${comment._id} was updated`, comment: comment });
         })
         .catch((error) => {
             console.log('error inside PUT /ingredients/:id', error);
@@ -89,7 +89,7 @@ router.put('/:id', (req, res) => {
 router.delete('/:id', (req, res) => {
     Comment.findByIdAndDelete(req.params.id)
         .then((comment) => {
-            return res.json({ message: `${comment._id} was deleted`, comment: ingredient });
+            return res.json({ message: `${comment._id} was deleted`, comment: comment });
         })
         .catch((error) => {
             console.log('error inside DELETE /comments/:id', error);
