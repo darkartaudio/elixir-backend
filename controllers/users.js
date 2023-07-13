@@ -31,7 +31,8 @@ router.get('/profile', passport.authenticate('jwt', { session: false }), (req, r
     console.log(req.body);
     console.log('====> user')
     console.log(req.user);
-    const { id, email, username, fullName, birthdate, location, recipesByUser, commentsByUser, following, favorites, avatar } = req.user; // object with user object inside
+    let { id, email, username, fullName, birthdate, location, recipesByUser, commentsByUser, following, favorites, avatar } = req.user; // object with user object inside
+    birthdate = moment(birthdate).format('MMMM Do YYYY');
     return res.json({ id, email, username, fullName, birthdate, location, recipesByUser, commentsByUser, following, favorites, avatar });
 });
 
