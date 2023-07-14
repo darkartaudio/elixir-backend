@@ -1,6 +1,6 @@
-const express = require('express')
+const express = require('express');
 const router = express.Router();
-const { Recipe } = require('../models')
+const { Recipe } = require('../models');
 const { parseValue } = require('../utils');
 
 router.get('/', (req, res) => {
@@ -12,7 +12,21 @@ router.get('/', (req, res) => {
         console.log('error', error);
         return res.json({ message: 'There was an issue please try again...'});
     })
-})
+});
+
+router.get('/trending/:num', (req, res) => {
+    Recipe.find({})
+    .sort({ favoriteCount: -1 })
+    .limit(parseInt(req.params.num))
+    .populate('ingredients')
+    .then((recipes) => {
+        return res.json({ recipes: recipes });
+    })
+    .catch(error => {
+        console.log('error', error);
+        return res.json({ message: 'There was an issue please try again...'});
+    });
+});
 
 router.get('/:field/:value', (req, res) => {
     let field = req.params.field;
@@ -28,7 +42,7 @@ router.get('/:field/:value', (req, res) => {
         console.log('error', error);
         return res.json({ message: 'There was an issue please try again...' });
     });
-})
+});
 
 router.get('/:id', (req, res) => {
     Recipe.findById(req.params.id)
@@ -40,7 +54,7 @@ router.get('/:id', (req, res) => {
         console.log('error', error);
         return res.json({ message: 'There was an issue please try again...' });
     });
-})
+});
 
 router.post('/search', (req, res) => {
     let ingredientIds = req.body.selectedParams.map(ingredient => {
@@ -54,8 +68,7 @@ router.post('/search', (req, res) => {
     .catch(error => {
         console.log('error', error);
         return res.json({ message: 'There was an issue please try again...' });
-    })
-    
+    });
 });
 
 router.post('/new', (req, res) => {
@@ -67,7 +80,7 @@ router.post('/new', (req, res) => {
         instructions: req.body.instructions,
         alcoholic: Boolean(req.body.alcoholic),
         image: req.body.image,
-        comments: req.body.comments,
+        // comments: req.body.comments,
         createdBy: req.body.createdBy,
         glassType: req.body.glassType,
         category: req.body.category
@@ -80,7 +93,7 @@ router.post('/new', (req, res) => {
         console.log('error', error);
         return res.json({ message: 'error occured, please try again.' });
     });
-})
+});
 
 router.put('/:id', (req, res) => {
     const updateQuery = {};
@@ -127,24 +140,24 @@ router.put('/:id', (req, res) => {
 
 
     Recipe.findByIdAndUpdate(req.params.id, { $set: updateQuery }, { new: true })
-        .then((recipe) => {
-            return res.json({ message: `${recipe.name} was updated`, recipe: recipe });
-        })
-        .catch((error) => {
-            console.log('error inside PUT /recipes/:id', error);
-            return res.json({ message: 'error occured, please try again.' });
-        });
+    .then((recipe) => {
+        return res.json({ message: `${recipe.name} was updated`, recipe: recipe });
+    })
+    .catch((error) => {
+        console.log('error inside PUT /recipes/:id', error);
+        return res.json({ message: 'error occured, please try again.' });
+    });
 });
 
 router.delete('/:id', (req, res) => {
     Recipe.findByIdAndDelete(req.params.id)
-        .then((recipe) => {
-            return res.json({ message: `${recipe.name} was deleted`, recipe: recipe });
-        })
-        .catch((error) => {
-            console.log('error inside DELETE /users/:id', error);
-            return res.json({ message: 'error occured, please try again.' });
-        });
+    .then((recipe) => {
+        return res.json({ message: `${recipe.name} was deleted`, recipe: recipe });
+    })
+    .catch((error) => {
+        console.log('error inside DELETE /users/:id', error);
+        return res.json({ message: 'error occured, please try again.' });
+    });
 });
 
-module.exports = router
+module.exports = router;
