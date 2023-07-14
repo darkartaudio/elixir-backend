@@ -47,7 +47,7 @@ router.get('/:field/:value', (req, res) => {
 
         let birthdateParsedUsers = users.map(user => {
             let parsedUser = {...user._doc};
-            parsedUser.birthdate = moment(user.birthdate).local.format('MMMM Do YYYY');
+            parsedUser.birthdate = moment(user.birthdate).format('MMMM Do YYYY');
             console.log(parsedUser);
             return parsedUser;
         });
@@ -146,7 +146,7 @@ router.post('/login', async (req, res) => {
                 username: foundUser.username,
                 fullName: foundUser.fullName,
                 location: foundUser.location,
-                birthdate: moment(foundUser.birthdate).local.format('MMMM Do YYYY'),
+                birthdate: moment(foundUser.birthdate).format('MMMM Do YYYY'),
                 recipesByUser: foundUser.recipesByUser,
                 commentsByUser: foundUser.commentsByUser,
                 following: foundUser.following,
