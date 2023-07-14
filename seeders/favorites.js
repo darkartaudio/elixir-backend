@@ -15,6 +15,9 @@ async function seedFavorites() {
             let randomRecipe = allRecipes[randIntInterval(0, allRecipes.length - 1)];
 
             thisUser.favorites.push(randomRecipe);
+            randomRecipe.favoriteCount += 1;
+            let savedRecipe = await randomRecipe.save();
+            console.log(savedRecipe);
         }
         let savedUser = await thisUser.save();
         console.log(savedUser);

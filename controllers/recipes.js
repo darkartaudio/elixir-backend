@@ -14,46 +14,18 @@ router.get('/', (req, res) => {
     })
 });
 
-router.get('/trending', (req, res) => {
-    Recipe.aggregate([
-        { $unwind: '$comments' },
-        { $group: { 
-            _id: {
-                _id: '$_id',
-                name: '$name',
-                ingredients: '$ingredients',
-                measures: '$measures',
-                instructions: '$instructions',
-                alcoholic: '$alcoholic',
-                image: '$image',
-                createdBy: '$createdBy',
-                glassType: '$glassType',
-                category: '$category',
-                comments: '$comments',
-                createdAt: '$createdAt',
-                updatedAt: '$updatedAt',
-            },
-            commentsCount: { $sum: 1 }
-         }},
-        { $sort: { commentsCount: -1 } }
-    ])
-    .limit(20)
-    .then(mostCommentedRecipes => {
-        const recipeIds = [];
-        mostCommentedRecipes.forEach(recipe => { recipeIds.push(recipe._id._id) });
-        Recipe.find({ _id: { $in: recipeIds } }).populate('ingredients')
-        .then(populatedRecipes => {
-            return res.json({ recipes: populatedRecipes });
-        })
-        .catch(error => {
-            console.log('error', error);
-            return res.json({ message: 'There was an issue please try again...'});
-        })
+router.get('/trending/:num', (req, res) => {
+    Recipe.find({})
+    .sort({ favoriteCount: -1 })
+    .limit(parseInt(req.params.num))
+    .populate('ingredients')
+    .then((recipes) => {
+        return res.json({ recipes: recipes });
     })
     .catch(error => {
         console.log('error', error);
         return res.json({ message: 'There was an issue please try again...'});
-    })
+    });
 });
 
 router.get('/:field/:value', (req, res) => {
@@ -108,7 +80,7 @@ router.post('/new', (req, res) => {
         instructions: req.body.instructions,
         alcoholic: Boolean(req.body.alcoholic),
         image: req.body.image,
-        comments: req.body.comments,
+        // comments: req.body.comments,
         createdBy: req.body.createdBy,
         glassType: req.body.glassType,
         category: req.body.category
