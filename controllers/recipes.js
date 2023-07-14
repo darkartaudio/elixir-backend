@@ -4,7 +4,7 @@ const { Recipe } = require('../models')
 const { parseValue } = require('../utils');
 
 router.get('/', (req, res) => {
-    Recipe.find({})
+    Recipe.find({}).populate('ingredients')
     .then((recipes) => {
         return res.json({ recipes: recipes });
     })
