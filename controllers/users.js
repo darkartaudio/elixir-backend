@@ -10,7 +10,7 @@ const moment = require('moment');
 const { parseValue } = require('../utils');
 
 // import the User model
-const { User } = require('../models');
+const { User, Recipe } = require('../models');
 
 // GET make a users route to get all users
 router.get('/', (req, res) => {
@@ -59,7 +59,7 @@ router.get('/:field/:value', (req, res) => {
     });
 });
 
-router.get('/:id', passport.authenticate('jwt', { session: false }), (req, res) => {
+router.get('/:id',  (req, res) => {
     User.findById(req.params.id)
     .then((user) => {
         console.log('user found');
@@ -199,6 +199,37 @@ router.post('/:id/follow', passport.authenticate('jwt', { session: false }), (re
     .catch((error) => {
         console.log('error inside Post /users/:id/follow', error);
         return res.json({ message: `Unable to follow , please try again.` });
+    });
+
+} )
+
+router.post('/:id/favorites', (req, res) => {
+    // let { id, email, username, fullName, birthdate, location, recipesByUser, commentsByUser, following, favorites, avatar } = req.user;
+
+    User.findById(req.params.id)
+    .then((user) => {
+        console.log('ID',req.body.id)
+        Recipe.findById(req.body.id)
+        .then(favoriteRecipe => {
+            console.log('follow user', favoriteRecipe)
+            user.favorites.push(favoriteRecipe)
+            user.save()
+            .then(result => {
+                return res.json({ message: `${user.username} has added ${favoriteRecipe.name} to favorites`, result: result})
+            })
+            .catch((error) => {
+                console.log('error inside Post /users/:id/favorites', error);
+                return res.json({ message: `Unable to favorite , please try again.` });
+            });
+        })
+        .catch((error) => {
+            console.log('error inside Post /users/:id/favorite', error);
+            return res.json({ message: `Unable to favorite , please try again.` });
+        }); 
+    })
+    .catch((error) => {
+        console.log('error inside Post /users/:id/favorite', error);
+        return res.json({ message: `Unable to favorite , please try again.` });
     });
 
 } )
