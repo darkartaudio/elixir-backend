@@ -4,7 +4,8 @@ const { Recipe } = require('../models');
 const { parseValue } = require('../utils');
 
 router.get('/', (req, res) => {
-    Recipe.find({}).populate('ingredients')
+    Recipe.find({})
+    .populate('ingredients createdBy')
     .then((recipes) => {
         return res.json({ recipes: recipes });
     })
@@ -18,7 +19,7 @@ router.get('/trending/:num', (req, res) => {
     Recipe.find({})
     .sort({ favoriteCount: -1 })
     .limit(parseInt(req.params.num))
-    .populate('ingredients')
+    .populate('ingredients createdBy')
     .then((recipes) => {
         return res.json({ recipes: recipes });
     })
