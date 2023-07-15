@@ -143,8 +143,9 @@ router.post('/search', (req, res) => {
     });
 });
 
-router.post('/new', (req, res) => {
+router.post('/new', passport.authenticate('jwt', { session: false }), (req, res) => {
     console.log('data from request(recipe)', req.body);
+    let { id, name, email } = req.user; 
     Recipe.create({
         name: req.body.name,
         ingredients: req.body.ingredients,
@@ -153,7 +154,7 @@ router.post('/new', (req, res) => {
         alcoholic: Boolean(req.body.alcoholic),
         image: req.body.image,
         // comments: req.body.comments,
-        createdBy: req.body.createdBy,
+        createdBy: req.user.id,
         glassType: req.body.glassType,
         category: req.body.category
     })
