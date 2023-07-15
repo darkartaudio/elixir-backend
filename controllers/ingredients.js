@@ -4,7 +4,7 @@ const { Ingredient } = require('../models')
 const { parseValue } = require('../utils');
 
 router.get('/', (req, res) => {
-    Ingredient.find({})
+    Ingredient.find({}, '_id name')
     .then((ingredients) => {
         return res.json({ ingredients: ingredients });
     })

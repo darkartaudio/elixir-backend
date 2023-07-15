@@ -14,7 +14,7 @@ const { User } = require('../models');
 
 // GET make a users route to get all users
 router.get('/', (req, res) => {
-    User.find({})
+    User.find({}, '_id username')
         .then((users) => {
             console.log('users', users);
             return res.json({ users: users });
