@@ -203,19 +203,20 @@ router.post('/:id/follow', passport.authenticate('jwt', { session: false }), (re
 
 } )
 
-router.post('/:id/favorites', (req, res) => {
+router.post('/:id/favorites', passport.authenticate('jwt', { session: false }), (req, res) => {
     // let { id, email, username, fullName, birthdate, location, recipesByUser, commentsByUser, following, favorites, avatar } = req.user;
-
-    User.findById(req.params.id)
-    .then((user) => {
+    let { id, name, email } = req.user; // object with user object inside
+    // res.json({ success: true, user: req.user })
+    User.findById(req.user.id)
+    .then((foundUser) => {
         console.log('ID',req.body.id)
         Recipe.findById(req.body.id)
         .then(favoriteRecipe => {
-            console.log('follow user', favoriteRecipe)
-            user.favorites.push(favoriteRecipe)
-            user.save()
+            console.log('add recipe', favoriteRecipe)
+            foundUser.favorites.push(favoriteRecipe)
+            foundUser.save()
             .then(result => {
-                return res.json({ message: `${user.username} has added ${favoriteRecipe.name} to favorites`, result: result})
+                return res.json({ message: `${foundUser.username} has added ${favoriteRecipe.name} to favorites`, result: result})
             })
             .catch((error) => {
                 console.log('error inside Post /users/:id/favorites', error);
@@ -231,7 +232,7 @@ router.post('/:id/favorites', (req, res) => {
         console.log('error inside Post /users/:id/favorite', error);
         return res.json({ message: `Unable to favorite , please try again.` });
     });
-
+    
 } )
 
 router.put('/:id', (req, res) => {
