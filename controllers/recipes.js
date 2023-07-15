@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { Recipe } = require('../models');
+const { Recipe, User, Comment } = require('../models');
 const { parseValue } = require('../utils');
 
 router.get('/', (req, res) => {
@@ -68,6 +68,49 @@ router.get('/:field/:value', (req, res) => {
         return res.json({ message: 'There was an issue please try again...' });
     });
 });
+
+router.post('/:id/comment', (req, res) => {
+    // let { id, email, username, fullName, birthdate, location, recipesByUser, commentsByUser, following, favorites, avatar } = req.user;
+    
+    Recipe.findById(req.params.id)
+    .then((recipe) =>{
+        console.log('recipe', recipe)
+        User.findById(req.body.id)
+        .then((user) => {
+            Comment.create({
+                title: req.body.title,
+                body: req.body.body,
+                createdBy: user
+            })
+            .then(comment =>{
+                console.log('comment', comment)
+                user.commentsByUser.push(comment)
+                user.save()
+                recipe.comments.push(comment)
+                recipe.save()
+                .then(result => {
+                    return res.json({ message: `${user.username} has commented ${comment.title} to ${recipe.name}`, result:result})
+                })
+                .catch((error) => {
+                    console.log('error inside Post /recipes/:id/comment', error);
+                    return res.json({ message: `Unable to comment , please try again.` });
+                });
+            })
+            .catch((error) => {
+                console.log('error inside Post /recipes/:id/comment', error);
+                return res.json({ message: `Unable to find created comment , please try again.` });
+            });
+        })
+        .catch((error) => {
+            console.log('error inside Post /recipes/:id/comment', error);
+            return res.json({ message: `Unable to find user , please try again.` });
+        });
+    })
+    .catch((error) => {
+        console.log('error inside Post /recipes/:id/comment', error);
+        return res.json({ message: `Unable to find recipe , please try again.` });
+    });
+})
 
 router.get('/:id', (req, res) => {
     Recipe.findById(req.params.id)
