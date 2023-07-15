@@ -29,6 +29,30 @@ router.get('/trending/:num', (req, res) => {
     });
 });
 
+router.get('/random/:num', (req, res) => {
+    Recipe.find({})
+    .populate('ingredients createdBy')
+    .then(allRecipes => {
+        let randomRecipes = [];
+        let randomIndexes = [];
+        for (let i = 0; i < parseInt(req.params.num); i++) {
+            while (true) {
+                let randomIndex = Math.floor(Math.random() * allRecipes.length);
+                if (!randomIndexes.includes(randomIndex)) {
+                    randomIndexes.push(randomIndex);
+                    randomRecipes.push(allRecipes[randomIndex]);
+                    break;
+                }
+            }
+        }
+        return res.json({ recipes: randomRecipes });
+    })
+    .catch(error => {
+        console.log('error', error);
+        return res.json({ message: 'There was an issue please try again...'});
+    });
+});
+
 router.get('/:field/:value', (req, res) => {
     let field = req.params.field;
     let value = req.params.value;
