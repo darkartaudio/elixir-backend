@@ -4,8 +4,7 @@ const { Recipe, User, Comment } = require('../models');
 const { parseValue } = require('../utils');
 
 router.get('/', (req, res) => {
-    Recipe.find({})
-    .populate('ingredients createdBy')
+    Recipe.find({}, '_id name')
     .then((recipes) => {
         return res.json({ recipes: recipes });
     })
@@ -130,6 +129,7 @@ router.post('/search', (req, res) => {
     });
 
     Recipe.find({ 'ingredients': { '$all': ingredientIds } })
+    .populate('ingredients createdBy')
     .then(recipes => {
         return res.json({ recipes });
     })
