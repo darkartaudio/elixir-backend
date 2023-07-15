@@ -172,6 +172,37 @@ router.post('/login', async (req, res) => {
     }
 });
 
+router.post('/:id/follow', passport.authenticate('jwt', { session: false }), (req, res) => {
+    // let { id, email, username, fullName, birthdate, location, recipesByUser, commentsByUser, following, favorites, avatar } = req.user;
+
+    User.findById(req.params.id)
+    .then((user) => {
+        console.log('ID',req.body.id)
+        User.findById(req.body.id)
+        .then(followUser => {
+            console.log('follow user', followUser)
+            user.following.push(followUser)
+            user.save()
+            .then(result => {
+                return res.json({ message: `${user.username} has followed ${followUser.username}`, result: result})
+            })
+            .catch((error) => {
+                console.log('error inside Post /users/:id/follow', error);
+                return res.json({ message: `Unable to follow , please try again.` });
+            });
+        })
+        .catch((error) => {
+            console.log('error inside Post /users/:id/follow', error);
+            return res.json({ message: `Unable to follow , please try again.` });
+        }); 
+    })
+    .catch((error) => {
+        console.log('error inside Post /users/:id/follow', error);
+        return res.json({ message: `Unable to follow , please try again.` });
+    });
+
+} )
+
 router.put('/:id', (req, res) => {
     const updateQuery = {};
     // check fullName
