@@ -92,14 +92,45 @@ db.on('error', (err)=> {
 // Recipe.findOne({})
 // .then(result => console.log(result));
 
-Recipe.deleteMany({})
-.then(result => console.log(result));
+// try
+    //  {
+    //     // let { id, email, username, fullName, birthdate, location, recipesByUser, commentsByUser, following, favorites, avatar } = req.user;
+    //     // console.log(req.user);
+        
+    //     const { userId } = req.params.id;
+    //     const { followUserId } = req.body.following;
+    
+    //     // Find the user who wants to follow
+    //     const user = await User.findById(userId);
+    //     console.log('user', user)
+    
+    //     // Find the user to be followed
+    //     const followUser = await User.findById(followUserId);
+    //     console.log('user to be followed', followUser)
+    
+    //     // Add the followUser to the user's following list
+    //     user.following.push(followUser._id);
+    //     user.save();
+    
+    //     // Add the user to the followUser's followers list
+    //     followUser.followers.push(user._id);
+    //      followUser.save();
+    
+    //     res.status(200).json({ message: 'Successfully followed user.' });
+    //   } catch (error) {
+    //     console.error(error);
+    //     res.status(500).json({ message: 'An error occurred while following the user.' });
+    //   }
 
-User.deleteMany({})
-.then(result => console.log(result));
 
-Comment.deleteMany({})
-.then(result => console.log(result));
+// Recipe.deleteMany({})
+// .then(result => console.log(result));
+
+// User.deleteMany({})
+// .then(result => console.log(result));
+
+// Comment.deleteMany({})
+// .then(result => console.log(result));
 
 // Ingredient.deleteMany({})
 // .then(result => console.log(result));
