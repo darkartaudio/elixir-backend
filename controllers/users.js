@@ -27,10 +27,10 @@ router.get('/', (req, res) => {
 
 // private
 router.get('/profile', passport.authenticate('jwt', { session: false }), (req, res) => {
-    console.log('====> inside /profile');
-    console.log(req.body);
-    console.log('====> user')
-    console.log(req.user);
+    // console.log('====> inside /profile');
+    // console.log(req.body);
+    // console.log('====> user')
+    // console.log(req.user);
     let { id, email, username, fullName, birthdate, location, recipesByUser, commentsByUser, following, favorites, avatar } = req.user; // object with user object inside
     birthdate = moment(birthdate).format('MMMM Do YYYY');
     return res.json({ id, email, username, fullName, birthdate, location, recipesByUser, commentsByUser, following, favorites, avatar });
@@ -48,7 +48,7 @@ router.get('/:field/:value', (req, res) => {
         let birthdateParsedUsers = users.map(user => {
             let parsedUser = {...user._doc};
             parsedUser.birthdate = moment(user.birthdate).format('MMMM Do YYYY');
-            console.log(parsedUser);
+            // console.log(parsedUser);
             return parsedUser;
         });
         return res.json({ users: birthdateParsedUsers });
@@ -62,7 +62,7 @@ router.get('/:field/:value', (req, res) => {
 router.get('/:id',  (req, res) => {
     User.findById(req.params.id)
     .then((user) => {
-        console.log('user found');
+        // console.log('user found');
         return res.json({ user: user });
     })
     .catch(error => {
@@ -177,10 +177,10 @@ router.post('/:id/follow', passport.authenticate('jwt', { session: false }), (re
 
     User.findById(req.params.id)
     .then((user) => {
-        console.log('ID',req.body.id)
+        // console.log('ID',req.body.id)
         User.findById(req.body.id)
         .then(followUser => {
-            console.log('follow user', followUser)
+            // console.log('follow user', followUser)
             user.following.push(followUser)
             user.save()
             .then(result => {
@@ -209,10 +209,10 @@ router.post('/:id/favorites', passport.authenticate('jwt', { session: false }), 
     // res.json({ success: true, user: req.user })
     User.findById(req.user.id)
     .then((foundUser) => {
-        console.log('ID',req.body.id)
+        // console.log('ID',req.body.id)
         Recipe.findById(req.body.id)
         .then(favoriteRecipe => {
-            console.log('add recipe', favoriteRecipe)
+            // console.log('add recipe', favoriteRecipe)
             foundUser.favorites.push(favoriteRecipe)
             foundUser.save()
             .then(result => {

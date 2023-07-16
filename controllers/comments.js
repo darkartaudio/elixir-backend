@@ -21,13 +21,13 @@ router.get('/', (req, res) => {
 router.get('/:field/:value', (req, res) => {
     let field = req.params.field
     let value = req.params.value
-    console.log('field', 'value', field, value)
+    // console.log('field', 'value', field, value)
     // let query = {}
     // query[field]=value
     
     Comment.find({ [field]:[value] })
     .then((comments) => {
-        console.log("comments", comments)
+        // console.log("comments", comments)
         return res.json({ comments: comments })
     })
     .catch(error => {
@@ -39,7 +39,7 @@ router.get('/:field/:value', (req, res) => {
 router.get('/:id', (req, res) => {
     Comment.findById(req.params.id)
     .then((comment) => {
-        console.log('comment found')
+        // console.log('comment found')
         return res.json({ comment: comment})
     })
     .catch(error => {
@@ -52,7 +52,7 @@ router.post('/search', (req, res) => {
     Comment.find({ _id: { $in: req.body.commentIds } })
     .populate('createdBy')
     .then(comments => {
-        console.log(comments);
+        // console.log(comments);
         return res.json({ comments });
     })
     .catch(error => {
@@ -62,14 +62,14 @@ router.post('/search', (req, res) => {
 })
 
 router.post('/new', (req, res) => {
-    console.log('data from request(comment)', req.body);
+    // console.log('data from request(comment)', req.body);
     Comment.create({
         title: req.body.title,
         body: req.body.body,
         createdBy: req.body.createdBy,
     })
     .then((newComment) => {
-        console.log('new comment created =>', newComment);
+        // console.log('new comment created =>', newComment);
         return res.json({ comment: newComment });
     })
     .catch((error) => {
