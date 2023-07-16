@@ -56,6 +56,20 @@ router.get('/random/:num', (req, res) => {
     });
 });
 
+router.get('/my', passport.authenticate('jwt', { session: false }), (req, res) => {
+    console.log(req.user.id);
+    Recipe.find({ createdBy: req.user.id})
+    .populate('ingredients createdBy')
+    .then((recipes) => {
+        console.log('recipes', recipes);
+        return res.json({ recipes: recipes });
+    })
+    .catch(error => {
+        console.log('error', error);
+        return res.json({ message: 'There was an issue please try again...'});
+    });
+});
+
 router.get('/:field/:value', (req, res) => {
     let field = req.params.field;
     let value = req.params.value;
