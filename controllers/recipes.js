@@ -113,6 +113,7 @@ router.post('/:id/comment', (req, res) => {
 
 router.get('/:id', (req, res) => {
     Recipe.findById(req.params.id)
+    .populate('ingredients createdBy')
     .then((recipe) => {
         // console.log('recipe found');
         return res.json({ recipe: recipe});

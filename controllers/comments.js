@@ -44,6 +44,19 @@ router.get('/:id', (req, res) => {
     });
 })
 
+router.post('/search', (req, res) => {
+    Comment.find({ _id: { $in: req.body.commentIds } })
+    .populate('createdBy')
+    .then(comments => {
+        console.log(comments);
+        return res.json({ comments });
+    })
+    .catch(error => {
+        console.log('error', error);
+        res.json({ message: 'There was an issue please try again...' });
+    });
+})
+
 router.post('/new', (req, res) => {
     console.log('data from request(comment)', req.body);
     Comment.create({
