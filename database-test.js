@@ -2,7 +2,7 @@
 require('dotenv').config();
 const { faker } = require('@faker-js/faker');
 const mongoose = require('mongoose');
-const { createRandomUser, createRandomRecipe, createRandomIngredient } = require('./utils')
+const { createRandomUser, createRandomRecipe, createRandomIngredient, randIntInterval } = require('./utils')
 
 // models for testing
 const { User, Recipe, Ingredient, Comment } = require('./models')
@@ -135,5 +135,23 @@ db.on('error', (err)=> {
 // Ingredient.deleteMany({})
 // .then(result => console.log(result));
 
-Recipe.deleteMany({name: 'asdf'})
-.then(result => console.log(result));
+// Recipe.deleteMany({name: 'asdf'})
+// .then(result => console.log(result));
+
+// async function mikeyFavorites() {
+//     let thisUser = await User.findOne({email: 'mikey@mikeyallred.com'});
+//     let allRecipes = await Recipe.find({});
+
+//     for(let i = 0; i < 5; i++) {
+//         let randomRecipe = allRecipes[randIntInterval(0, allRecipes.length - 1)];
+
+//         thisUser.favorites.push(randomRecipe);
+//         randomRecipe.favoriteCount += 1;
+//         let savedRecipe = await randomRecipe.save();
+//         console.log(savedRecipe);
+//     }
+//     let savedUser = await thisUser.save();
+//     console.log(savedUser);
+// }
+
+// mikeyFavorites();
