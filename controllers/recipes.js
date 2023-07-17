@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const passport = require('passport');
 const { JWT_SECRET } = process.env;
-const { Recipe, User, Comment } = require('../models');
+const { Recipe, Ingredient, User, Comment } = require('../models');
 const { parseValue } = require('../utils');
 
 router.get('/', (req, res) => {
@@ -158,29 +158,48 @@ router.post('/search', (req, res) => {
     });
 });
 
-router.post('/new', passport.authenticate('jwt', { session: false }), (req, res) => {
-    console.log('data from request(recipe)', req.body);
-    let { id, name, email } = req.user; 
-    Recipe.create({
+router.post('/new', passport.authenticate('jwt', { session: false }), async (req, res) => {
+    let measures, ingredients, user;
+    
+    if (!req.user.id) {
+        return res.json({ message: 'Please log in to create a recipe.' });
+    }
+    
+    if (req.body.measures) {
+        measures = req.body.measures.filter(measure => {
+            return measure !== '';
+        });
+    }
+
+    if (req.body.ingredients) ingredients = await Ingredient.find({ _id: { $in: req.body.ingredients } });
+    
+    user = await User.findById(req.user.id);
+    
+    let newRecipe = await Recipe.create({
         name: req.body.name,
-        ingredients: req.body.ingredients,
-        measures: req.body.measures,
         instructions: req.body.instructions,
         alcoholic: Boolean(req.body.alcoholic),
         image: req.body.image,
-        // comments: req.body.comments,
-        createdBy: req.user.id,
         glassType: req.body.glassType,
-        category: req.body.category
-    })
-    .then((newRecipe) => {
-        console.log('new recipe created =>', newRecipe);
-        return res.json({ recipe: newRecipe });
-    })
-    .catch((error) => {
-        console.log('error', error);
-        return res.json({ message: 'error occured, please try again.' });
+        category: req.body.category,
+        measures,
+        ingredients,
+        createdBy: user
     });
+
+    user.recipesByUser.push(newRecipe);
+    let savedUser = await user.save();
+
+    return res.json({ recipe: newRecipe });
+
+    // .then((newRecipe) => {
+    //     console.log('new recipe created =>', newRecipe);
+    //     return res.json({ recipe: newRecipe });
+    // })
+    // .catch((error) => {
+    //     console.log('error', error);
+    //     return res.json({ message: 'error occured, please try again.' });
+    // });
 });
 
 router.put('/:id', (req, res) => {

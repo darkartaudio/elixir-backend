@@ -134,3 +134,6 @@ db.on('error', (err)=> {
 
 // Ingredient.deleteMany({})
 // .then(result => console.log(result));
+
+Recipe.deleteMany({name: 'asdf'})
+.then(result => console.log(result));
