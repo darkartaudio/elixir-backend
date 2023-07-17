@@ -191,18 +191,23 @@ router.post('/new', passport.authenticate('jwt', { session: false }), async (req
     let savedUser = await user.save();
 
     return res.json({ recipe: newRecipe });
-
-    // .then((newRecipe) => {
-    //     console.log('new recipe created =>', newRecipe);
-    //     return res.json({ recipe: newRecipe });
-    // })
-    // .catch((error) => {
-    //     console.log('error', error);
-    //     return res.json({ message: 'error occured, please try again.' });
-    // });
 });
 
-router.put('/:id', (req, res) => {
+router.put('/:id', passport.authenticate('jwt', { session: false }), async (req, res) => {
+    let measures, ingredients;
+
+    if(!req.user.id || req.user.id !== req.body.createdBy) {
+        return res.json({ message: `Only the recipe's creator may edit it.` });
+    }
+    
+    if (req.body.measures) {
+        measures = req.body.measures.filter(measure => {
+            return measure !== '';
+        });
+    }
+
+    if (req.body.ingredients) ingredients = await Ingredient.find({ _id: { $in: req.body.ingredients } });
+    
     const updateQuery = {};
     // check name
     if (req.body.name) {
@@ -210,7 +215,7 @@ router.put('/:id', (req, res) => {
     }
     // check ingredients
     if (req.body.ingredients) {
-        updateQuery.ingredients = req.body.ingredients;
+        updateQuery.ingredients = ingredients;
     }
     // check measures
     if (req.body.measures) {
@@ -222,15 +227,11 @@ router.put('/:id', (req, res) => {
     }
     // check alcoholic
     if (req.body.alcoholic) {
-        updateQuery.alcoholic = req.body.alcoholic;
+        updateQuery.alcoholic = Boolean(req.body.alcoholic);
     }
     // check image
     if (req.body.image) {
         updateQuery.image = req.body.image;
-    }
-    // check createdBy
-    if (req.body.createdBy) {
-        updateQuery.createdBy = req.body.createdBy;
     }
     // check glassType
     if (req.body.glassType) {
@@ -240,14 +241,10 @@ router.put('/:id', (req, res) => {
     if (req.body.category) {
         updateQuery.category = req.body.category;
     }
-    // check comments
-    if (req.body.comments) {
-        updateQuery.comments = req.body.comments;
-    }
-
 
     Recipe.findByIdAndUpdate(req.params.id, { $set: updateQuery }, { new: true })
     .then((recipe) => {
+        console.log('updated recipe', recipe)
         return res.json({ message: `${recipe.name} was updated`, recipe: recipe });
     })
     .catch((error) => {
@@ -256,7 +253,13 @@ router.put('/:id', (req, res) => {
     });
 });
 
-router.delete('/:id', (req, res) => {
+router.delete('/:id', passport.authenticate('jwt', { session: false }), async (req, res) => {
+    let recipeToDelete = await Recipe.findById(req.params.id);
+
+    if(!req.user.id || req.user.id !== recipeToDelete.createdBy[0]._id.toString()) {
+        return res.json({ message: `Only the recipe's creator may delete it.` });
+    }
+
     Recipe.findByIdAndDelete(req.params.id)
     .then((recipe) => {
         return res.json({ message: `${recipe.name} was deleted`, recipe: recipe });
