@@ -57,11 +57,28 @@ router.get('/random/:num', (req, res) => {
 });
 
 router.get('/my', passport.authenticate('jwt', { session: false }), (req, res) => {
-    console.log(req.user.id);
+    // console.log(req.user.id);
     Recipe.find({ createdBy: req.user.id})
     .populate('ingredients createdBy')
     .then((recipes) => {
-        console.log('recipes', recipes);
+        // console.log('recipes', recipes);
+        return res.json({ recipes: recipes });
+    })
+    .catch(error => {
+        console.log('error', error);
+        return res.json({ message: 'There was an issue please try again...'});
+    });
+});
+
+router.get('/favorite', passport.authenticate('jwt', { session: false }), async (req, res) => {
+    let user = await User.findById(req.user.id).populate('favorites');
+    let favoriteIds = user.favorites.map(favorite => {
+        return favorite._id;
+    })
+    Recipe.find({ _id : { '$in': favoriteIds } })
+    .populate('ingredients createdBy')
+    .then((recipes) => {
+        // console.log('recipes', recipes);
         return res.json({ recipes: recipes });
     })
     .catch(error => {
@@ -244,7 +261,7 @@ router.put('/:id', passport.authenticate('jwt', { session: false }), async (req,
 
     Recipe.findByIdAndUpdate(req.params.id, { $set: updateQuery }, { new: true })
     .then((recipe) => {
-        console.log('updated recipe', recipe)
+        // console.log('updated recipe', recipe);
         return res.json({ message: `${recipe.name} was updated`, recipe: recipe });
     })
     .catch((error) => {
