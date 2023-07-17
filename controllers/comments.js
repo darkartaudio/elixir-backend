@@ -78,19 +78,16 @@ router.post('/new', (req, res) => {
     });
 })
 
-router.put('/:id', (req, res) => {
-    const updateQuery = {};
-    // check title
-    if (req.body.title) {
-        updateQuery.title = req.body.title;
+router.put('/:id', passport.authenticate('jwt', { session: false }), async (req, res) => {
+    let comment = await Comment.findById(req.params.id).populate('createdBy');
+    if(!req.user.id || req.user.id !== comment.createdBy[0]._id) {
+        return res.json({ message: `Only the comment's creator may edit it.` });
     }
+
+    const updateQuery = {};
     // check body
     if (req.body.body) {
         updateQuery.body = req.body.body;
-    }
-    // check createdBy
-    if (req.body.createdBy) {
-        updateQuery.createdBy = req.body.createdBy;
     }
 
     Comment.findByIdAndUpdate(req.params.id, { $set: updateQuery }, { new: true })
@@ -103,15 +100,20 @@ router.put('/:id', (req, res) => {
         });
 });
 
-router.delete('/:id', (req, res) => {
+router.delete('/:id', passport.authenticate('jwt', { session: false }), async (req, res) => {
+    let comment = await Comment.findById(req.params.id).populate('createdBy');
+    if(!req.user.id || req.user.id !== comment.createdBy[0]._id) {
+        return res.json({ message: `Only the comment's creator may delete it.` });
+    }
+
     Comment.findByIdAndDelete(req.params.id)
-        .then((comment) => {
-            return res.json({ message: `${comment._id} was deleted`, comment: comment });
-        })
-        .catch((error) => {
-            console.log('error inside DELETE /comments/:id', error);
-            return res.json({ message: 'error occured, please try again.' });
-        });
+    .then((comment) => {
+        return res.json({ message: `${comment._id} was deleted`, comment: comment });
+    })
+    .catch((error) => {
+        console.log('error inside DELETE /comments/:id', error);
+        return res.json({ message: 'error occured, please try again.' });
+    });
 });
 
-module.exports = router
+module.exports = router;
