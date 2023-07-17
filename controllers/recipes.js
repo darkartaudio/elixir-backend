@@ -103,27 +103,45 @@ router.get('/:field/:value', (req, res) => {
     });
 });
 
-router.post('/:id/comment', (req, res) => {
-    // let { id, email, username, fullName, birthdate, location, recipesByUser, commentsByUser, following, favorites, avatar } = req.user;
-    
+router.get('/:id', (req, res) => {
+    Recipe.findById(req.params.id)
+    .populate('ingredients createdBy')
+    .then((recipe) => {
+        // console.log('recipe found');
+        return res.json({ recipe: recipe});
+    })
+    .catch(error => {
+        console.log('error', error);
+        return res.json({ message: 'There was an issue please try again...' });
+    });
+});
+
+router.post('/:id/comment', passport.authenticate('jwt', { session: false }), (req, res) => {    
     Recipe.findById(req.params.id)
     .then((recipe) =>{
-        console.log('recipe', recipe)
-        User.findById(req.body.id)
+        User.findById(req.user.id)
         .then((user) => {
             Comment.create({
-                title: req.body.title,
                 body: req.body.body,
                 createdBy: user
             })
             .then(comment =>{
-                console.log('comment', comment)
-                user.commentsByUser.push(comment)
-                user.save()
-                recipe.comments.push(comment)
-                recipe.save()
-                .then(result => {
-                    return res.json({ message: `${user.username} has commented ${comment.title} to ${recipe.name}`, result:result})
+                Comment.findById(comment._id)
+                .populate('createdBy')
+                .then(populatedComment => {
+                    user.commentsByUser.push(populatedComment);
+                    user.save()
+                    .then(savedUser => {
+                        recipe.comments.push(populatedComment);
+                        recipe.save()
+                        .then(savedRecipe => {
+                            return res.json({ message: `${savedUser.username} has commented ${populatedComment.body} to ${savedRecipe.name}`, recipe: savedRecipe, comment: populatedComment })
+                        })
+                        .catch((error) => {
+                            console.log('error inside Post /recipes/:id/comment', error);
+                            return res.json({ message: `Unable to comment , please try again.` });
+                        });
+                    });
                 })
                 .catch((error) => {
                     console.log('error inside Post /recipes/:id/comment', error);
@@ -143,19 +161,6 @@ router.post('/:id/comment', (req, res) => {
     .catch((error) => {
         console.log('error inside Post /recipes/:id/comment', error);
         return res.json({ message: `Unable to find recipe , please try again.` });
-    });
-})
-
-router.get('/:id', (req, res) => {
-    Recipe.findById(req.params.id)
-    .populate('ingredients createdBy')
-    .then((recipe) => {
-        // console.log('recipe found');
-        return res.json({ recipe: recipe});
-    })
-    .catch(error => {
-        console.log('error', error);
-        return res.json({ message: 'There was an issue please try again...' });
     });
 });
 
