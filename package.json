@@ -1,7 +1,7 @@
 {
-  "name": "mongoose-app",
+  "name": "elixir-backend",
   "version": "1.0.0",
-  "description": "Create Express API using Mongoose and more ...",
+  "description": "Backend API for a mixological app built with Node.js, Express, MongoDB, and Mongoose.",
   "main": "app.js",
   "scripts": {
     "test": "mocha",
