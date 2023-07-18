@@ -215,6 +215,48 @@ router.post('/new', passport.authenticate('jwt', { session: false }), async (req
     return res.json({ recipe: newRecipe });
 });
 
+router.post('/:id/favorite', passport.authenticate('jwt', { session: false }), async (req, res) => {
+    try {
+        let user = await User.findById(req.user.id);
+        let recipe = await Recipe.findById(req.params.id);
+
+        if (user.favorites.includes(recipe._id)) {
+            return res.json({ message: 'You have already favorited this recipe.' });
+        }
+        
+        user.favorites.push(recipe);
+        let savedUser = await user.save();
+        recipe.favoriteCount++;
+        let savedRecipe = await recipe.save();
+
+        return res.json({ message: `${savedUser.username} has favorited ${savedRecipe.name}`, user: savedUser, recipe: savedRecipe });
+    } catch (error) {
+        console.log('error inside Post /recipes/:id/favorite', error);
+        return res.json({ message: `Unable to favorite , please try again.` });
+    }   
+});
+
+router.post('/:id/unfavorite', passport.authenticate('jwt', { session: false }), async (req, res) => {
+    try {
+        let user = await User.findById(req.user.id);
+        let recipe = await Recipe.findById(req.params.id);
+
+        if (!user.favorites.includes(recipe._id)) {
+            return res.json({ message: 'You have not favorited this recipe.' });
+        }
+        
+        user.favorites = user.favorites.filter(favorite => favorite.toString() !== req.params.id);
+        let savedUser = await user.save();
+        recipe.favoriteCount--;
+        let savedRecipe = await recipe.save();
+
+        return res.json({ message: `${savedUser.username} has unfavorited ${savedRecipe.name}`, user: savedUser, recipe: savedRecipe });
+    } catch (error) {
+        console.log('error inside Post /recipes/:id/favorite', error);
+        return res.json({ message: `Unable to unfavorite , please try again.` });
+    }   
+});
+
 router.put('/:id', passport.authenticate('jwt', { session: false }), async (req, res) => {
     let measures, ingredients;
 
