@@ -16,7 +16,7 @@ const { User, Recipe } = require('../models');
 router.get('/', (req, res) => {
     User.find({}, '_id username')
         .then((users) => {
-            console.log('users', users);
+            // console.log('users', users);
             return res.json({ users: users });
         })
         .catch((error) => {

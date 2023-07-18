@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const passport = require('passport');
 const { JWT_SECRET } = process.env;
-const { Comment } = require('../models')
+const { Comment, User, Recipe } = require('../models')
 const { parseValue } = require('../utils');
 
 router.get('/', (req, res) => {
@@ -80,7 +80,7 @@ router.post('/new', (req, res) => {
 
 router.put('/:id', passport.authenticate('jwt', { session: false }), async (req, res) => {
     let comment = await Comment.findById(req.params.id).populate('createdBy');
-    if(!req.user.id || req.user.id !== comment.createdBy[0]._id) {
+    if(!req.user.id || req.user.id !== comment.createdBy[0]._id.toString()) {
         return res.json({ message: `Only the comment's creator may edit it.` });
     }
 
@@ -101,19 +101,39 @@ router.put('/:id', passport.authenticate('jwt', { session: false }), async (req,
 });
 
 router.delete('/:id', passport.authenticate('jwt', { session: false }), async (req, res) => {
-    let comment = await Comment.findById(req.params.id).populate('createdBy');
-    if(!req.user.id || req.user.id !== comment.createdBy[0]._id) {
-        return res.json({ message: `Only the comment's creator may delete it.` });
-    }
+    try {
+        let comment = await Comment.findById(req.params.id).populate('createdBy');
+        if(!req.user.id || req.user.id !== comment.createdBy[0]._id.toString()) {
+            return res.json({ message: `Only the comment's creator may delete it.` });
+        }
 
-    Comment.findByIdAndDelete(req.params.id)
-    .then((comment) => {
-        return res.json({ message: `${comment._id} was deleted`, comment: comment });
-    })
-    .catch((error) => {
+        let user = await User.findById(req.user.id);
+        let userComments = user.commentsByUser;
+        let newUserComments = userComments.filter(comment => {
+            return comment._id.toString() !== req.params.id;
+        });
+        user.commentsByUser = newUserComments;
+
+        await user.save();
+
+        let recipe = await Recipe.findOne({ comments: req.params.id });
+        let recipeComments = recipe.comments;
+        let newRecipeComments = recipeComments.filter(comment => {
+            return comment._id.toString() !== req.params.id;
+        });
+        recipe.comments = newRecipeComments;
+
+        await recipe.save();
+
+        let deleteResponse = await Comment.findByIdAndDelete(req.params.id);
+
+        if (deleteResponse) {
+            return res.json({ message: `Deleted comment ${req.params.id}` });
+        }
+    } catch (error) {
         console.log('error inside DELETE /comments/:id', error);
         return res.json({ message: 'error occured, please try again.' });
-    });
+    }
 });
 
 module.exports = router;
