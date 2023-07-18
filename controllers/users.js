@@ -47,7 +47,8 @@ router.get('/:field/:value', (req, res) => {
 
         let birthdateParsedUsers = users.map(user => {
             let parsedUser = {...user._doc};
-            parsedUser.birthdate = moment(user.birthdate).format('MMMM Do YYYY');
+            // parsedUser.birthdate = moment(user.birthdate).format('MMMM Do YYYY');
+            parsedUser.birthdate = moment(user.birthdate).format('YYYY-MM-DD');
             // console.log(parsedUser);
             return parsedUser;
         });
