@@ -262,10 +262,9 @@ router.put('/:id', (req, res) => {
     if (req.body.location) {
         updateQuery.location = req.body.location;
     }
-    // check avatar
-    if (req.body.avatar) {
-        updateQuery.avatar = req.body.avatar;
-    }
+    
+    updateQuery.avatar = req.body.avatar;
+    
     // check commentsByUser
     if (req.body.commentsByUser) {
         updateQuery.commentsByUser = req.body.commentsByUser;

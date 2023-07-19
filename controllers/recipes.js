@@ -294,9 +294,8 @@ router.put('/:id', passport.authenticate('jwt', { session: false }), async (req,
         updateQuery.alcoholic = Boolean(req.body.alcoholic);
     }
     // check image
-    if (req.body.image) {
-        updateQuery.image = req.body.image;
-    }
+    updateQuery.image = req.body.image;
+
     // check glassType
     if (req.body.glassType) {
         updateQuery.glassType = req.body.glassType;
