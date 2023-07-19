@@ -1,7 +1,7 @@
 const express = require('express')
 const router = express.Router();
 const passport = require('passport');
-const { Comment, User, Recipe } = require('../models')
+const { Comment, User, Recipe } = require('../models');
 
 router.get('/', (req, res) => {
     Comment.find({})
@@ -11,8 +11,8 @@ router.get('/', (req, res) => {
     .catch(error => {
         console.log('error', error);
         return res.json({ message: 'There was an issue please try again...'});
-    })
-})
+    });
+});
 
 router.get('/:field/:value', (req, res) => {
     let field = req.params.field;
@@ -26,7 +26,7 @@ router.get('/:field/:value', (req, res) => {
         console.log('error', error);
         return res.json({ message: 'There was an issue please try again...' });
     });
-})
+});
 
 router.get('/:id', (req, res) => {
     Comment.findById(req.params.id)
@@ -37,7 +37,7 @@ router.get('/:id', (req, res) => {
         console.log('error', error);
         return res.json({ message: 'There was an issue please try again...' });
     });
-})
+});
 
 router.post('/search', (req, res) => {
     Comment.find({ _id: { $in: req.body.commentIds } })
@@ -49,7 +49,7 @@ router.post('/search', (req, res) => {
         console.log('error', error);
         return res.json({ message: 'There was an issue please try again...' });
     });
-})
+});
 
 router.post('/new', (req, res) => {
     Comment.create({
@@ -64,7 +64,7 @@ router.post('/new', (req, res) => {
         console.log('error', error);
         res.json({ message: 'There was an issue please try again...' });
     });
-})
+});
 
 router.put('/:id', passport.authenticate('jwt', { session: false }), async (req, res) => {
     let comment = await Comment.findById(req.params.id).populate('createdBy');
