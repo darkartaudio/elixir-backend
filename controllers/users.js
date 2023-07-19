@@ -1,4 +1,3 @@
-// Imports
 require('dotenv').config();
 const express = require('express');
 const router = express.Router();
@@ -7,31 +6,23 @@ const jwt = require('jsonwebtoken');
 const passport = require('passport');
 const { JWT_SECRET } = process.env;
 const moment = require('moment');
-const { parseValue } = require('../utils');
 
-// import the User model
 const { User, Recipe } = require('../models');
 
-// GET make a users route to get all users
 router.get('/', (req, res) => {
     User.find({}, '_id username')
-        .then((users) => {
-            // console.log('users', users);
-            return res.json({ users: users });
-        })
-        .catch((error) => {
-            console.log('error', error);
-            return res.json({ message: 'There was an issue, please try again...' });
-        });
+    .then((users) => {
+        return res.json({ users: users });
+    })
+    .catch((error) => {
+        console.log('error', error);
+        return res.json({ message: 'There was an issue, please try again...' });
+    });
 });
 
 // private
 router.get('/profile', passport.authenticate('jwt', { session: false }), (req, res) => {
-    // console.log('====> inside /profile');
-    // console.log(req.body);
-    // console.log('====> user')
-    // console.log(req.user);
-    let { id, email, username, fullName, birthdate, location, recipesByUser, commentsByUser, following, favorites, avatar } = req.user; // object with user object inside
+    let { id, email, username, fullName, birthdate, location, recipesByUser, commentsByUser, following, favorites, avatar } = req.user;
     birthdate = moment(birthdate).format('MMMM Do YYYY');
     return res.json({ id, email, username, fullName, birthdate, location, recipesByUser, commentsByUser, following, favorites, avatar });
 });
@@ -39,17 +30,12 @@ router.get('/profile', passport.authenticate('jwt', { session: false }), (req, r
 router.get('/:field/:value', (req, res) => {
     let field = req.params.field;
     let value = req.params.value;
-    // console.log('field', 'value', field, value);
     
     User.find({ [field]:[value] })
     .then((users) => {
-        // console.log("user", user);
-
         let birthdateParsedUsers = users.map(user => {
             let parsedUser = {...user._doc};
-            // parsedUser.birthdate = moment(user.birthdate).format('MMMM Do YYYY');
             parsedUser.birthdate = moment(user.birthdate).format('YYYY-MM-DD');
-            // console.log(parsedUser);
             return parsedUser;
         });
         return res.json({ users: birthdateParsedUsers });
@@ -63,7 +49,6 @@ router.get('/:field/:value', (req, res) => {
 router.get('/:id',  (req, res) => {
     User.findById(req.params.id)
     .then((user) => {
-        // console.log('user found');
         return res.json({ user: user });
     })
     .catch(error => {
@@ -73,18 +58,13 @@ router.get('/:id',  (req, res) => {
 })
 
 router.post('/signup', (req, res) => {
-    // POST - adding the new user to the database
-    // console.log('===> Inside of /signup');
-    // console.log('===> /register -> req.body',req.body);
-
     User.findOne({ email: req.body.email })
     .then(user => {
         // if email already exists, a user will come back
         if (user) {
             // send a 400 response
-            return res.status(400).json({ message: 'Email already exists' });
+            return res.status(400).json({ message: 'Email already exists.' });
         } else {
-            // Create a new user
             const newUser = new User({
                 fullName: req.body.fullName,
                 username: req.body.username,
@@ -113,7 +93,7 @@ router.post('/signup', (req, res) => {
                     })
                     .catch(err => {
                         console.log('error with creating new user', err);
-                        res.json({ message: 'Error occured... Please try again.'});
+                        return res.json({ message: 'There was an issue please try again...' });
                     });
                 });
             });
@@ -122,20 +102,14 @@ router.post('/signup', (req, res) => {
     .catch(err => { 
         console.log('Error finding user', err);
         res.json({ message: 'Error occured... Please try again.'})
-    })
+    });
 });
 
 router.post('/login', async (req, res) => {
-    // POST - finding a user and returning the user
-    // console.log('===> Inside of /login');
-    // console.log('===> /login -> req.body', req.body);
-
     const foundUser = await User.findOne({ email: req.body.email });
 
     if (foundUser) {
-        // user is in the DB
         let isMatch = await bcrypt.compareSync(req.body.password, foundUser.password);
-        // console.log('Does the passwords match?', isMatch);
         if (isMatch) {
             // if user match, then we want to send a JSON Web Token
             // Create a token payload
@@ -174,14 +148,10 @@ router.post('/login', async (req, res) => {
 });
 
 router.post('/:id/follow', passport.authenticate('jwt', { session: false }), (req, res) => {
-    // let { id, email, username, fullName, birthdate, location, recipesByUser, commentsByUser, following, favorites, avatar } = req.user;
-
     User.findById(req.params.id)
     .then((user) => {
-        // console.log('ID',req.body.id)
         User.findById(req.body.id)
         .then(followUser => {
-            // console.log('follow user', followUser)
             user.following.push(followUser)
             user.save()
             .then(result => {
@@ -189,31 +159,27 @@ router.post('/:id/follow', passport.authenticate('jwt', { session: false }), (re
             })
             .catch((error) => {
                 console.log('error inside Post /users/:id/follow', error);
-                return res.json({ message: `Unable to follow , please try again.` });
+                return res.json({ message: `Unable to follow, please try again.` });
             });
         })
         .catch((error) => {
             console.log('error inside Post /users/:id/follow', error);
-            return res.json({ message: `Unable to follow , please try again.` });
+            return res.json({ message: `Unable to follow, please try again.` });
         }); 
     })
     .catch((error) => {
         console.log('error inside Post /users/:id/follow', error);
-        return res.json({ message: `Unable to follow , please try again.` });
+        return res.json({ message: `Unable to follow, please try again.` });
     });
 
-} )
+});
 
 router.post('/:id/favorites', passport.authenticate('jwt', { session: false }), (req, res) => {
-    // let { id, email, username, fullName, birthdate, location, recipesByUser, commentsByUser, following, favorites, avatar } = req.user;
-    let { id, name, email } = req.user; // object with user object inside
-    // res.json({ success: true, user: req.user })
+    let { id, name, email } = req.user;
     User.findById(req.user.id)
     .then((foundUser) => {
-        // console.log('ID',req.body.id)
         Recipe.findById(req.body.id)
         .then(favoriteRecipe => {
-            // console.log('add recipe', favoriteRecipe)
             foundUser.favorites.push(favoriteRecipe)
             foundUser.save()
             .then(result => {
@@ -221,20 +187,19 @@ router.post('/:id/favorites', passport.authenticate('jwt', { session: false }), 
             })
             .catch((error) => {
                 console.log('error inside Post /users/:id/favorites', error);
-                return res.json({ message: `Unable to favorite , please try again.` });
+                return res.json({ message: `Unable to favorite, please try again.` });
             });
         })
         .catch((error) => {
             console.log('error inside Post /users/:id/favorite', error);
-            return res.json({ message: `Unable to favorite , please try again.` });
+            return res.json({ message: `Unable to favorite, please try again.` });
         }); 
     })
     .catch((error) => {
         console.log('error inside Post /users/:id/favorite', error);
-        return res.json({ message: `Unable to favorite , please try again.` });
-    });
-    
-} )
+        return res.json({ message: `Unable to favorite, please try again.` });
+    });   
+});
 
 router.put('/:id', (req, res) => {
     const updateQuery = {};
@@ -283,14 +248,13 @@ router.put('/:id', (req, res) => {
     })
     .catch((error) => {
         console.log('error inside PUT /users/:id', error);
-        return res.json({ message: 'error occured, please try again.' });
+        return res.json({ message: 'There was an issue please try again...' });
     });
 });
 
 
 // DELETE route for /users/:id
 router.delete('/:id', (req, res) => {
-    
     User.findByIdAndDelete(req.params.id)
     .then((result) => {
         return res.json({ message: `User ${req.params.id} was deleted.`});
