@@ -3,9 +3,6 @@ const bcrypt = require('bcryptjs');
 const { User } = require('../models');
 const { createRandomUser } = require('../utils');
 
-// User.deleteMany({})
-// .then(result => console.log(result));
-
 for (let i = 0; i < 50; i++) {
     const newUser = new User(createRandomUser());
 

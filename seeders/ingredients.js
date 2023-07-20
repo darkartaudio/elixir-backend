@@ -3,9 +3,6 @@ const axios = require('axios');
 const { Ingredient } = require('../models');
 const { wait, firstLettersCapitalized } = require('../utils');
 
-// Ingredient.deleteMany({})
-// .then(result => console.log(result));
-
 // Get list of all ingredients names from API
 axios.get(`${process.env.API}/list.php?i=list`)
 .then(async response => {

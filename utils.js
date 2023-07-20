@@ -1,16 +1,5 @@
 const { faker } = require('@faker-js/faker')
 
-function parseValue(value) {
-    let valueArray = value.toLowerCase().split("+");
-    let parsedArray = valueArray.map((word) => {
-        let wordArray = word.split("");
-        wordArray[0] = " " + wordArray[0].toUpperCase();
-        return wordArray.join("");
-    });
-    let parsedValue = parsedArray.join("").trim();
-    return parsedValue;
-}
-
 function firstLettersCapitalized(string) {
     const words = string.split(" ");
 
@@ -75,7 +64,6 @@ function createRandomComment() {
 }
 
 module.exports = {
-    parseValue,
     wait,
     firstLettersCapitalized,
     randIntInterval,
