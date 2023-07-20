@@ -3,9 +3,6 @@ const axios = require('axios');
 const { Recipe, Ingredient } = require('../models');
 const { wait, firstLettersCapitalized } = require('../utils');
 
-// Recipe.deleteMany({})
-// .then(result => console.log(result));
-
 // Get list of all alcoholic drink IDs from API
 axios.get(`${process.env.API}/filter.php?a=Alcoholic`)
 .then(response => {
