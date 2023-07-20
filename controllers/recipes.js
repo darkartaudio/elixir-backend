@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const passport = require('passport');
 const { JWT_SECRET } = process.env;
 const { Recipe, Ingredient, User, Comment } = require('../models');
+const { parseValue } = require('../utils');
 
 router.get('/', (req, res) => {
     Recipe.find({}, '_id name')
@@ -14,7 +15,7 @@ router.get('/', (req, res) => {
     .catch(error => {
         console.log('error', error);
         return res.json({ message: 'There was an issue please try again...'});
-    });
+    })
 });
 
 router.get('/trending/:num', (req, res) => {
@@ -56,9 +57,11 @@ router.get('/random/:num', (req, res) => {
 });
 
 router.get('/my', passport.authenticate('jwt', { session: false }), (req, res) => {
+    // console.log(req.user.id);
     Recipe.find({ createdBy: req.user.id})
     .populate('ingredients createdBy')
     .then((recipes) => {
+        // console.log('recipes', recipes);
         return res.json({ recipes: recipes });
     })
     .catch(error => {
@@ -71,10 +74,11 @@ router.get('/favorite', passport.authenticate('jwt', { session: false }), async 
     let user = await User.findById(req.user.id).populate('favorites');
     let favoriteIds = user.favorites.map(favorite => {
         return favorite._id;
-    });
+    })
     Recipe.find({ _id : { '$in': favoriteIds } })
     .populate('ingredients createdBy')
     .then((recipes) => {
+        // console.log('recipes', recipes);
         return res.json({ recipes: recipes });
     })
     .catch(error => {
@@ -86,9 +90,11 @@ router.get('/favorite', passport.authenticate('jwt', { session: false }), async 
 router.get('/:field/:value', (req, res) => {
     let field = req.params.field;
     let value = req.params.value;
+    // console.log('field', 'value', field, value);
     
     Recipe.find({ [field]:[value] })
     .then((recipes) => {
+        // console.log("recipes", recipes);
         return res.json({ recipes: recipes });
     })
     .catch(error => {
@@ -101,6 +107,7 @@ router.get('/:id', (req, res) => {
     Recipe.findById(req.params.id)
     .populate('ingredients createdBy')
     .then((recipe) => {
+        // console.log('recipe found');
         return res.json({ recipe: recipe});
     })
     .catch(error => {
@@ -128,27 +135,27 @@ router.post('/:id/comment', passport.authenticate('jwt', { session: false }), (r
                         recipe.comments.push(populatedComment);
                         recipe.save()
                         .then(savedRecipe => {
-                            return res.json({ message: `${savedUser.username} has commented ${populatedComment.body} to ${savedRecipe.name}`, recipe: savedRecipe, comment: populatedComment });
+                            return res.json({ message: `${savedUser.username} has commented ${populatedComment.body} to ${savedRecipe.name}`, recipe: savedRecipe, comment: populatedComment })
                         })
                         .catch((error) => {
                             console.log('error inside Post /recipes/:id/comment', error);
-                            return res.json({ message: `Unable to comment, please try again.` });
+                            return res.json({ message: `Unable to comment , please try again.` });
                         });
                     });
                 })
                 .catch((error) => {
                     console.log('error inside Post /recipes/:id/comment', error);
-                    return res.json({ message: `Unable to comment, please try again.` });
+                    return res.json({ message: `Unable to comment , please try again.` });
                 });
             })
             .catch((error) => {
                 console.log('error inside Post /recipes/:id/comment', error);
-                return res.json({ message: `Unable to find created comment, please try again.` });
+                return res.json({ message: `Unable to find created comment , please try again.` });
             });
         })
         .catch((error) => {
             console.log('error inside Post /recipes/:id/comment', error);
-            return res.json({ message: `Unable to find user, please try again.` });
+            return res.json({ message: `Unable to find user , please try again.` });
         });
     })
     .catch((error) => {
@@ -225,7 +232,7 @@ router.post('/:id/favorite', passport.authenticate('jwt', { session: false }), a
         return res.json({ message: `${savedUser.username} has favorited ${savedRecipe.name}`, user: savedUser, recipe: savedRecipe });
     } catch (error) {
         console.log('error inside Post /recipes/:id/favorite', error);
-        return res.json({ message: `Unable to favorite, please try again.` });
+        return res.json({ message: `Unable to favorite , please try again.` });
     }   
 });
 
@@ -246,7 +253,7 @@ router.post('/:id/unfavorite', passport.authenticate('jwt', { session: false }),
         return res.json({ message: `${savedUser.username} has unfavorited ${savedRecipe.name}`, user: savedUser, recipe: savedRecipe });
     } catch (error) {
         console.log('error inside Post /recipes/:id/favorite', error);
-        return res.json({ message: `Unable to unfavorite, please try again.` });
+        return res.json({ message: `Unable to unfavorite , please try again.` });
     }   
 });
 
@@ -300,11 +307,12 @@ router.put('/:id', passport.authenticate('jwt', { session: false }), async (req,
 
     Recipe.findByIdAndUpdate(req.params.id, { $set: updateQuery }, { new: true })
     .then((recipe) => {
+        // console.log('updated recipe', recipe);
         return res.json({ message: `${recipe.name} was updated`, recipe: recipe });
     })
     .catch((error) => {
         console.log('error inside PUT /recipes/:id', error);
-        return res.json({ message: 'There was an issue please try again...' });
+        return res.json({ message: 'error occured, please try again.' });
     });
 });
 
@@ -321,7 +329,7 @@ router.delete('/:id', passport.authenticate('jwt', { session: false }), async (r
     })
     .catch((error) => {
         console.log('error inside DELETE /users/:id', error);
-        return res.json({ message: 'There was an issue please try again...' });
+        return res.json({ message: 'error occured, please try again.' });
     });
 });
 
